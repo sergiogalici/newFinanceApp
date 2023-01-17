@@ -123,7 +123,8 @@ exports.openPortfolioPosition = async (req, res, next) => {
 
         res.status(201).json({
             status: "success",
-            portfolio
+            portfolio,
+            newPostion
         })
     } catch (err) {
         res.status(400).json({
