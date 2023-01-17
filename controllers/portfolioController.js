@@ -2,6 +2,21 @@ const Portfolio = require("./../models/portfolioModel")
 const Position = require("./../models/positionModel")
 const User = require("./../models/userModel")
 const axios = require("axios")
+
+// INTERNAL FUNCTIONS
+
+const getSymbolStockPrice = async symbol => {
+    const quoteRes = await axios
+            .get(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`)
+    return quoteRes
+}
+
+const validatingStockSymbol = async symbol => {
+    const response = await axios
+            .get(`https://finnhub.io/api/v1/search?q=${symbol}&token=${process.env.FINNHUB_API_KEY}`)
+    return response
+}
+
 // ENDPOINTS BUSINESS LOGIC
 
 exports.getUserPortfolio = async (req, res, next) => {
@@ -62,8 +77,7 @@ exports.openPortfolioPosition = async (req, res, next) => {
         }
 
         // Validating the symbol coming from the request body with the Finnhub API
-        const response = await axios
-            .get(`https://finnhub.io/api/v1/search?q=${symbol}&token=${process.env.FINNHUB_API_KEY}`)
+        const response = await validatingStockSymbol(symbol)
         
         if (response.data.count === 0 || response.data.result[0].displaySymbol !== symbol) {
             return res.status(404).json({
@@ -73,8 +87,7 @@ exports.openPortfolioPosition = async (req, res, next) => {
         }
 
         // Getting the price of the symbol
-        const quoteRes = await axios
-            .get(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`)
+        const quoteRes = await getSymbolStockPrice(symbol)
 
         // Price Calculation Logic
         symbolPrice = parseInt(quoteRes.data.c)
@@ -151,8 +164,7 @@ exports.closePortfolioPosition = async (req, res, next) => {
         let profit
 
         // Getting the price of the symbol
-        const quoteRes = await axios
-            .get(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`)
+        const quoteRes = await getSymbolStockPrice(symbol)
 
         // Price Calculation Logic
         symbolPrice = parseInt(quoteRes.data.c)
