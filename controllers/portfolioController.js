@@ -90,15 +90,15 @@ exports.openPortfolioPosition = async (req, res, next) => {
         const quoteRes = await getSymbolStockPrice(symbol)
 
         // Price Calculation Logic
-        symbolPrice = parseInt(quoteRes.data.c)
-        totalPrice = symbolPrice * parseInt(quantity)
+        symbolPrice = Number(quoteRes.data.c)
+        totalPrice = symbolPrice * Number(quantity)
 
         // this is only for development purposes, for production
         // a third party library like "Stripe" would be used instead
         // and Security methods and hooks inside the portfolioModel.js would be applied
         portfolio.addFunds(400)
 
-        if (portfolio.balance < totalPrice) {
+        if (Number(portfolio.balance) < totalPrice) {
             return res.status(402).json({
                 status: "fail",
                 message: "Not enough funds"
@@ -156,7 +156,7 @@ exports.closePortfolioPosition = async (req, res, next) => {
 
         const symbol = position.symbol
         const shares = position.shares
-        const openingPrice = parseInt(position.opening.price)
+        const openingPrice = Number(position.opening.price)
         let symbolPrice
         let profit
 
@@ -164,12 +164,12 @@ exports.closePortfolioPosition = async (req, res, next) => {
         const quoteRes = await getSymbolStockPrice(symbol)
 
         // Price Calculation Logic
-        symbolPrice = parseInt(quoteRes.data.c)
+        symbolPrice = Number(quoteRes.data.c)
 
         if (symbolPrice > openingPrice) {
             const fundsToAdd = 
-                (symbolPrice * parseInt(shares)) - 
-                (parseInt(position.price) * parseInt(position.shares))
+                (symbolPrice * Number(shares)) - 
+                (Number(position.price) * Number(position.shares))
 
             portfolio.addFunds(fundsToAdd)
             profit = "profit"
@@ -177,10 +177,10 @@ exports.closePortfolioPosition = async (req, res, next) => {
 
         if (symbolPrice < openingPrice) {
             const fundsToRemove = 
-                (parseInt(position.price) * parseInt(position.shares)) -
-                (symbolPrice * parseInt(shares))
+                (Number(position.price) * Number(position.shares)) -
+                (symbolPrice * Number(shares))
 
-            if (fundsToRemove > portfolio.balance) {
+            if (fundsToRemove > Number(portfolio.balance)) {
                 return res.status(402).json({
                     status: "fail",
                     message: "Not enough funds"
