@@ -31,7 +31,9 @@ exports.getUserPortfolio = async (req, res, next) => {
             })
         }
 
-        let positions = (await Position.find()).filter(c => c.ownerId = user._id)
+        let positions = await Position.find({
+            ownerId: user._id
+        })
 
         if (req.query.history !== "1") {
             portfolio.set('closedPositions', undefined, {strict: false})
@@ -119,7 +121,9 @@ exports.openPortfolioPosition = async (req, res, next) => {
 
         portfolio.positions.push(newPostion)
 
-        let positions = (await Position.find()).filter(c => c.ownerId = user._id)
+        let positions = await Position.find({
+            ownerId: user._id
+        })
 
         await portfolio.save()
 
