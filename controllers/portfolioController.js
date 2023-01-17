@@ -23,6 +23,8 @@ exports.getUserPortfolio = async (req, res, next) => {
     try {
         const user = req.user
         const portfolio = await Portfolio.findOne({ ownerId: user._id })
+            .populate("closedPositions")
+            .populate("positions")
 
         if (!portfolio) {
             res.status(404).json({
@@ -31,23 +33,17 @@ exports.getUserPortfolio = async (req, res, next) => {
             })
         }
 
-        let positions = await Position.find({
-            ownerId: user._id
-        })
-
         if (req.query.history !== "1") {
             portfolio.set('closedPositions', undefined, {strict: false})
             return res.status(200).json({
                 status: "success",
-                portfolio,
-                positions
+                portfolio
             })
         }
         
         res.status(200).json({
             status: "success",
-            portfolio,
-            positions
+            portfolio
         })
     } catch (err) {
         res.status(400).json({
@@ -61,6 +57,8 @@ exports.openPortfolioPosition = async (req, res, next) => {
     try {
         const user = req.user
         const portfolio = await Portfolio.findOne({ ownerId: user._id })
+            .populate("closedPositions")
+            .populate("positions")
         const { symbol, quantity } = req.body
         let symbolPrice
 
@@ -121,16 +119,11 @@ exports.openPortfolioPosition = async (req, res, next) => {
 
         portfolio.positions.push(newPostion)
 
-        let positions = await Position.find({
-            ownerId: user._id
-        })
-
         await portfolio.save()
 
         res.status(201).json({
             status: "success",
-            portfolio,
-            positions
+            portfolio
         })
     } catch (err) {
         res.status(400).json({
